@@ -13,7 +13,7 @@ pnpm dev
 
 This starts your app in development mode, rebuilding assets on file changes.
 
-To build your app for production:
+To build your app for production (also build storybook in the `out` directory):
 
 ```sh
 pnpm build
@@ -68,3 +68,13 @@ All the reusable components are created inside `/components` directory.
 
 All the public assets like `icons`, `images` are stored inside the `public` directory.
 
+## Storybook
+
+To run Storybook in development mode:
+```sh
+pnpm storybook
+```
+We can also build storybook in order to deploy it from `storybook-static` folder
+```sh
+pnpm build:storybook
+```

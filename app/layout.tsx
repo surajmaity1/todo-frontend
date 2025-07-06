@@ -1,7 +1,9 @@
+// "use client";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { QueryProvider } from "./_provider";
+import { ConditionalLayout } from "../components/ConditionalLayout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,7 +28,9 @@ export default function RootLayout({
       
         <body>
           <QueryProvider>
-            {children}
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
           </QueryProvider>
         </body>
     </html>

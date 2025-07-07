@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -8,10 +10,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import Link from 'next/link'
 
 
 
 export function SigninButton() {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000'
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -27,15 +31,13 @@ export function SigninButton() {
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
-          <Button 
-            className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg"
-            onClick={() => {
-              // TODO: later we will implement Google OAuth
-              console.log("Continue with Google clicked")
-            }}
+          <Link
+            className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg text-center"
+            href={`${backendUrl}/v1/auth/google/login`}
+            target="_blank"
           >
-            Continue with Google
-          </Button>
+            Sign in with Google
+          </Link>
           <Button 
             className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg"
             onClick={() => {

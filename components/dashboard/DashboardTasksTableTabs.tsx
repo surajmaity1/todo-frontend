@@ -28,8 +28,8 @@ export function DashboardTasksTableTabs({ tasks }: { tasks: Task[] }) {
 
       <Tabs value={currentTab} onValueChange={handleTabChange}>
         <TabsList>
-          <TabsTrigger value={TabsConstants.All}>{TabsConstants.All}</TabsTrigger>
-          <TabsTrigger value={TabsConstants.WatchList}>{TabsConstants.WatchList}</TabsTrigger>
+          <TabsTrigger value={TabsConstants.All} className="cursor-pointer">{TabsConstants.All}</TabsTrigger>
+          <TabsTrigger value={TabsConstants.WatchList} className="cursor-pointer">{TabsConstants.WatchList}</TabsTrigger>
         </TabsList>
         <TabsContent value={TabsConstants.All}>
             <DashboardTasksTable type={TabsConstants.All} tasks={tasks} />

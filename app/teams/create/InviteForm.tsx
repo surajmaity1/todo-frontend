@@ -100,7 +100,7 @@ export function InviteForm({ onBack, onCreateTeam, loading, currentUser }: Invit
   const handleSearchBlur = () => {
     setTimeout(() => {
       setSearchFocused(false)
-      if (searchTerm.trim() === '') {
+      if (searchTerm.trim() === '' && filteredUsers.length === 0) {
         setShowSuggestions(false)
       }
     }, 200)
@@ -160,7 +160,7 @@ export function InviteForm({ onBack, onCreateTeam, loading, currentUser }: Invit
               )}
             </div>
 
-            {(showSuggestions || isSearching) && (
+            {(showSuggestions || isSearching || filteredUsers.length > 0) && (
               <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-200 ease-in-out">
                 {isSearching ? (
                   <div className="flex items-center justify-center p-4">

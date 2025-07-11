@@ -1,13 +1,21 @@
 "use client";
 
-import { Mode, Task, TASK_STATUS, TASK_PRIORITY } from "@/app/types/tasks";
+import { Mode, Task  } from "@/app/types/tasks";
 import { useState } from "react";
 
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 //Import Svg for icons
 import calendarIcon from "@/public/assets/calendar.svg";
-import AccountIcon from "@/public/assets/profile.svg";
 import StatusIcon from "@/public/assets/status.svg";
 import TagsIcon from "@/public/assets/priceTag.svg";
 import IDIcon from "@/public/assets/id.svg";
@@ -18,36 +26,34 @@ import { FORM_MODE } from "@/app/constants/Task";
 import { TaskDetails } from "./TaskDetails";
 
 interface TodoFormProps {
-  initialData?: Task;
-  onSubmit?: (data: Task) => void;
-  mode: Mode;
+  initialData?: TaskFormData;
+  onSubmit?: (data: TaskFormData) => void;
+  mode?: Mode;
   onAcknowledge?: () => void;
   onClose: () => void;
+  open?: boolean;
 }
-
-const DEFAULT_FORM_DATA: Task = {
+export type TaskFormData = Omit<Task, "priority" | "assignee">;
+const DEFAULT_FORM_DATA: TaskFormData = {
   id: "",
   title: "",
   description: "",
   dueDate: "",
-  priority: TASK_PRIORITY.LOW,
-  assignee: { id: "", name: "" },
   tags: [],
   taskId: "",
-  status: TASK_STATUS.TODO,
 };
 
 export function TodoForm({
   initialData,
   onSubmit,
-  mode,
+  mode = FORM_MODE.CREATE,
   onAcknowledge,
   onClose,
+  open = true,
 }: TodoFormProps) {
-  const [formData, setFormData] = useState<Task>(
+  const [formData, setFormData] = useState<TaskFormData>(
     initialData ?? DEFAULT_FORM_DATA
   );
-
   const Icon = mode === FORM_MODE.CREATE ? SendIcon : SaveIcon;
   const ctaText = mode === FORM_MODE.CREATE ? "Submit" : "Save";
   const altText = mode === FORM_MODE.CREATE ? "Create todo" : "Save todo";
@@ -62,27 +68,26 @@ export function TodoForm({
       <TaskDetails
         onClose={onClose}
         onAcknowledge={onAcknowledge}
-        initialData={initialData}
+        initialData={initialData as Task}
       />
     );
   }
 
   return (
-    <div className="w-full absolute rounded-none top-0 left-0 h-full mt-auto md:static md:max-w-2xl bg-white md:rounded-xl shadow-sm shadow-gray-400 border-gray-200 border-[1px] overflow-hidden">
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
-        <div className="flex flex-row justify-between items-center">
-          <h2 className="text-xl font-semibold text-indigo-600">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-indigo-600">
             {mode === FORM_MODE.CREATE ? "Create a Todo" : "Edit Todo"}
-          </h2>
-          <button
-            data-testid="form-close-button"
-            className="md:hidden flex flex-row items-center justify-center gap-2 w-fit py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
-            onClick={onClose}
-          >
-            X
-          </button>
-        </div>
-        <hr className="mb-4" />
+          </DialogTitle>
+          <DialogDescription>
+            {mode === FORM_MODE.CREATE 
+              ? "Create a new task to organize your work" 
+              : "Edit your existing task details"}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
 
         <div className="space-y-4">
           <div>
@@ -162,8 +167,11 @@ export function TodoForm({
               required
             />
           </div>
+          {/* todo @tejas-gp or @anuj: add assignee later 
+          -- currently we don't have API which brings assignee details
+          */}
 
-          <div className="flex flex-row gap-2 justify-start items-center  ">
+          {/* <div className="flex flex-row gap-2 justify-start items-center  ">
             <Image
               src={AccountIcon}
               alt={"due data icon"}
@@ -191,7 +199,7 @@ export function TodoForm({
               placeholder="e.g @ankush"
               required
             />
-          </div>
+          </div> */}
 
           <div className="flex flex-row gap-2 justify-start items-center">
             <Image
@@ -237,9 +245,11 @@ export function TodoForm({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, taskId: e.target.value }))
               }
+              disabled={mode === FORM_MODE.EDIT}
               className="w-full p-2 text-sm bg-[#F5F5FF] text-indigo-700  border-none border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
               placeholder="e.g #kda4dyodajd73j"
               required
+              readOnly={mode === FORM_MODE.EDIT}
             />
           </div>
 
@@ -259,7 +269,7 @@ export function TodoForm({
               </label>
               <select
                 id="status"
-                value={formData.status}
+                value={formData.status }
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -276,19 +286,20 @@ export function TodoForm({
           )}
         </div>
 
-        <hr className="mb-4" />
-
-        <button
-          data-testid="task-form-submit-button"
-          type="submit"
-          className="flex flex-row items-center justify-center gap-2 w-fit py-2 px-4 bg-indigo-600 hover:bg-[#4F46E5] text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
-        >
-          <span className="flex flex-row gap-2">
-            <Image src={Icon} alt={altText} width={20} height={20} />
-            {ctaText}
-          </span>
-        </button>
-      </form>
-    </div>
+          <DialogFooter>
+            <Button
+              data-testid="task-form-submit-button"
+              type="submit"
+              className="flex flex-row items-center justify-center gap-2 w-fit py-2 px-4 bg-indigo-600 hover:bg-[#4F46E5] text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
+            >
+              <span className="flex flex-row gap-2">
+                <Image src={Icon} alt={altText} width={20} height={20} />
+                {ctaText}
+              </span>
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

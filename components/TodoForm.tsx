@@ -1,44 +1,48 @@
 'use client'
 
-import { FORM_MODE } from '@/app/constants/Task'
-import { Mode, Task, TASK_PRIORITY, TASK_STATUS } from '@/app/types/tasks'
 import { FormEvent, useState } from 'react'
 import { TaskDetails } from './TaskDetails'
 
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import Image from 'next/image'
 
-//Import Svg for icons
+import { TASK_PRIORITY_ENUM, TASK_STATUS_ENUM } from '@/api/tasks/tasks.enum'
+import { TTask } from '@/api/tasks/tasks.types'
+import { FORM_MODE } from '@/config/task'
 import calendarIcon from '@/public/assets/calendar.svg'
 import TagsIcon from '@/public/assets/priceTag.svg'
 import SaveIcon from '@/public/assets/save.svg'
 import SendIcon from '@/public/assets/send.svg'
 import StatusIcon from '@/public/assets/status.svg'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog'
 
 interface TodoFormProps {
   initialData?: TaskFormData
   onSubmit?: (data: TaskFormData) => void
-  mode?: Mode
+  mode?: (typeof FORM_MODE)[keyof typeof FORM_MODE]
   onAcknowledge?: () => void
   onClose: () => void
   open?: boolean
 }
-export type TaskFormData = Omit<Task, 'assignee'>
+export type TaskFormData = Omit<TTask, 'assignee'>
+
 const DEFAULT_FORM_DATA: TaskFormData = {
   id: '',
   title: '',
   description: '',
   dueAt: '',
-  priority: TASK_PRIORITY.LOW,
+  priority: TASK_PRIORITY_ENUM.LOW,
   tags: [],
+  status: TASK_STATUS_ENUM.TODO,
+  isInWatchlist: false,
+  labels: [],
 }
 
 export function TodoForm({
@@ -64,24 +68,24 @@ export function TodoForm({
       <TaskDetails
         onClose={onClose}
         onAcknowledge={onAcknowledge}
-        initialData={initialData as Task}
+        initialData={initialData as TTask}
       />
     )
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-indigo-600">
+    <AlertDialog open={open} onOpenChange={onClose}>
+      <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-xl font-semibold text-indigo-600">
             {mode === FORM_MODE.CREATE ? 'Create a Todo' : 'Edit Todo'}
-          </DialogTitle>
-          <DialogDescription>
+          </AlertDialogTitle>
+          <AlertDialogDescription>
             {mode === FORM_MODE.CREATE
               ? 'Create a new task to organize your work'
               : 'Edit your existing task details'}
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
@@ -162,12 +166,12 @@ export function TodoForm({
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    priority: e.target.value as Task['priority'],
+                    priority: e.target.value as TTask['priority'],
                   }))
                 }
                 className="text-primary w-full rounded-md border-none border-[#E5E7EB] bg-[#F5F5FF] p-2 text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none"
               >
-                {Object.entries(TASK_PRIORITY).map(([key, label]) => (
+                {Object.entries(TASK_PRIORITY_ENUM).map(([key, label]) => (
                   <option key={key} value={key}>
                     {label}
                   </option>
@@ -246,12 +250,12 @@ export function TodoForm({
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      status: e.target.value as Task['status'],
+                      status: e.target.value as TTask['status'],
                     }))
                   }
                   className="text-primary w-full rounded-md border-none border-[#E5E7EB] bg-[#F5F5FF] p-2 text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none"
                 >
-                  {Object.entries(TASK_STATUS).map(([key, label]) => (
+                  {Object.entries(TASK_STATUS_ENUM).map(([key, label]) => (
                     <option key={key} value={key}>
                       {label}
                     </option>
@@ -261,7 +265,7 @@ export function TodoForm({
             )}
           </div>
 
-          <DialogFooter>
+          <AlertDialogFooter>
             <Button
               data-testid="task-form-submit-button"
               type="submit"
@@ -272,9 +276,9 @@ export function TodoForm({
                 {ctaText}
               </span>
             </Button>
-          </DialogFooter>
+          </AlertDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

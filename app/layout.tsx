@@ -1,9 +1,7 @@
-// "use client";
+import Providers from '@/components/providers'
+import { appConfig, validateAppConfig } from '@/config/app-config'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { Toaster } from 'sonner'
-import { ConditionalLayout } from '../components/ConditionalLayout'
-import { QueryProvider } from './_provider'
 import './globals.css'
 
 const inter = Inter({
@@ -12,8 +10,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Todo Project',
-  description: 'Created by Real Dev Squad',
+  title: appConfig.appName,
+  description: appConfig.appDescription,
 }
 
 export default function RootLayout({
@@ -21,17 +19,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  validateAppConfig(appConfig)
+
   return (
     <html lang="en" className={inter.className}>
-      <head>
-        <title>Introducing Todo Project</title>
-      </head>
-
       <body>
-        <QueryProvider>
-          <ConditionalLayout>{children}</ConditionalLayout>
-          <Toaster />
-        </QueryProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

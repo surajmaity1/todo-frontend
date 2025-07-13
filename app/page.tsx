@@ -1,6 +1,3 @@
-'use client'
-import { DashboardContainer } from '@/components/dashboard/DashboardContainer'
+import { LandingPage } from '@/modules/landing-page'
 
-export default function DashboardPage() {
-  return <DashboardContainer />
-}
+export default LandingPage

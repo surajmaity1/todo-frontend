@@ -1,73 +1,128 @@
-import { Briefcase, ChartNetwork, Home, Users } from 'lucide-react'
-import * as React from 'react'
+'use client'
 
-import { NavMain } from '@/components/nav-main'
+import { TeamsApi } from '@/api/teams/teams.api'
+import { GetTeamsDto } from '@/api/teams/teams.type'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from '@/components/ui/sidebar'
+import { appConfig } from '@/config/app-config'
+import { SIDEBAR_LINKS, TSidebarLink } from '@/config/sidebar'
+import { useQuery } from '@tanstack/react-query'
+import { usePathname } from 'next/navigation'
+import { Shimmer } from './Shimmer'
 
-import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
+const getSidebarLinks = (teams?: GetTeamsDto): TSidebarLink[] => {
+  if (!teams || teams.teams.length === 0) {
+    return SIDEBAR_LINKS
+  }
 
-//TODO: Replace with real team data from API when backend integration is complete. Currently used for development and testing of team navigation.
+  const sidebarLinks = SIDEBAR_LINKS.filter((link) => link.url !== '/teams')
 
-const dummyTeamData = [
-  {
-    id: 2,
-    name: 'Design Team',
-  },
-  {
-    id: 3,
-    name: 'Development Team',
-  },
-  {
-    id: 4,
-    name: 'Marketing Team',
-  },
-]
+  const teamsLinks = teams.teams.map((team) => ({
+    title: team.name,
+    url: `/teams/${team.id}`,
+  }))
 
-const data = {
-  navMain: [
-    {
-      title: 'Home',
-      url: '/',
-      icon: Home,
-      isActive: true,
-    },
-    {
-      title: 'Tasks',
-      url: '/tasks',
-      icon: Briefcase,
-    },
+  return [
+    ...sidebarLinks,
     {
       title: 'Teams',
-      url: '/teams',
-      icon: Users,
-      isActive: true,
-      items: [
-        ...dummyTeamData.map((team) => ({
-          title: team.name,
-          url: `/teams?teamId=${team.id}`,
-        })),
-        {
-          title: 'Create Team +',
-          url: '/teams/create',
-        },
-        {
-          title: 'Join Team +',
-          url: '/teams/join',
-        },
-      ],
+      url: '#',
+      items: teamsLinks,
     },
-  ],
+  ]
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const SidebarShimmer = () => {
   return (
-    <Sidebar className="border-r-0" {...props}>
+    <>
+      {new Array(4).fill(0).map((_, index) => (
+        <SidebarMenuItem key={index}>
+          <SidebarMenuButton asChild>
+            <Shimmer className="h-8 w-full bg-gray-200" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+    </>
+  )
+}
+
+type SidebarLinkProps = {
+  link: TSidebarLink
+  isActive: boolean
+}
+
+const SidebarLink = ({ link, isActive }: SidebarLinkProps) => {
+  if (link.items) {
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel>{link.title}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {link.items.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild isActive={isActive}>
+                  <a href={item.url}>{item.title}</a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    )
+  }
+
+  return (
+    <SidebarMenuItem className="px-2">
+      <SidebarMenuButton asChild isActive={isActive}>
+        <a href={link.url}>{link.title}</a>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
+
+export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+  const pathname = usePathname()
+
+  const { data, isLoading } = useQuery({
+    queryKey: TeamsApi.getTeams.key,
+    queryFn: TeamsApi.getTeams.fn,
+  })
+
+  return (
+    <Sidebar {...props}>
       <SidebarHeader>
-        <div className="flex space-x-1 pt-2 pl-2">
-          <ChartNetwork />
-          <h1 className="text-xl font-semibold">Real Flow</h1>
-        </div>
-        <NavMain items={data.navMain} />
+        <h1 className="px-2 py-1 text-xl font-semibold">{appConfig.appName}</h1>
       </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {isLoading ? (
+                <SidebarShimmer />
+              ) : (
+                getSidebarLinks(data).map((item) => (
+                  <SidebarLink
+                    link={item}
+                    key={item.title}
+                    isActive={pathname.startsWith(item.url)}
+                  />
+                ))
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
       <SidebarRail />
     </Sidebar>
   )

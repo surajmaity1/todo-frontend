@@ -27,6 +27,10 @@ export class TodoUtil {
       updateDetails.priority = todoFormData.priority
     }
 
+    if (todoFormData.status !== initialTodo.status) {
+      updateDetails.status = todoFormData.status
+    }
+
     if (sortedTodoFormDataLabelIds?.join(',') !== sortedInitialLabelIds?.join(',')) {
       updateDetails.labels = todoFormData.labels
     }
@@ -44,6 +48,7 @@ export class TodoUtil {
   static getDefaultTodoFormData = (todo: TTask): Partial<TTodoFormData> => {
     return {
       title: todo.title,
+      status: todo.status,
       priority: todo.priority,
       dueDate: todo.dueAt || '',
       description: todo.description || '',

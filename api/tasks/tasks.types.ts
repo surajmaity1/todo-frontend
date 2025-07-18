@@ -1,3 +1,4 @@
+import { USER_TYPE_ENUM } from '../common/common-enum'
 import { TMinimalUser, TTaskAssignee } from '../common/common.types'
 import { TASK_PRIORITY_ENUM, TASK_STATUS_ENUM } from './tasks.enum'
 
@@ -44,13 +45,15 @@ export type GetTasksDto = {
   tasks: TTask[]
 }
 
-export type CrateTaskDto = {
+export type CrateTaskReqDto = {
   title: string
   description?: string
   priority?: TASK_PRIORITY_ENUM
   status?: TASK_STATUS_ENUM
   labels?: string[]
   dueAt?: string
+  assignee_id: string
+  user_type: USER_TYPE_ENUM
 }
 
 export type UpdateTaskDto = {
@@ -82,7 +85,7 @@ export type TWatchListTask = {
   userId: string
   title: string
   description?: string
-  priority?: number
+  priority?: TASK_PRIORITY_ENUM
   status: TASK_STATUS_ENUM
   isAcknowledged: boolean | null
   isDeleted: boolean | null

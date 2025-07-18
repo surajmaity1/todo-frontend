@@ -4,7 +4,7 @@ export type TTask = {
   id: string
   title: string
   description?: string
-  labels?: { name: string }[]
+  labels?: string[]
   status: TASK_STATUS_ENUM
   priority?: TASK_PRIORITY_ENUM
   assignee?: {
@@ -32,6 +32,7 @@ export type CrateTaskDto = {
   description?: string
   priority?: TASK_PRIORITY_ENUM
   status?: TASK_STATUS_ENUM
+  labels?: string[]
   dueAt?: string
 }
 
@@ -41,6 +42,7 @@ export type UpdateTaskDto = {
   description?: string
   priority?: TASK_PRIORITY_ENUM
   status?: TASK_STATUS_ENUM
+  labels?: string[]
   dueAt?: string
 }
 
@@ -67,7 +69,7 @@ export type TWatchListTask = {
   status: TASK_STATUS_ENUM
   isAcknowledged: boolean | null
   isDeleted: boolean | null
-  labels?: { name: string }[]
+  labels?: string[]
   dueAt: string
   createdAt: string
   createdBy: string

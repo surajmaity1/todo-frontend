@@ -92,7 +92,7 @@ export const CreateTeam = () => {
 
   const handleSuccessModalClose = () => {
     setShowSuccessModal(false)
-    router.push(`/teams/${teamId}/tasks`)
+    router.push(`/teams/${teamId}/todos`)
   }
 
   const handleFormSubmission = (e: React.FormEvent<HTMLFormElement>) => {
@@ -113,7 +113,7 @@ export const CreateTeam = () => {
   if (showInviteForm) {
     return (
       <PageContainer className="flex-1 py-12 md:py-20 xl:py-28">
-        <div className="mx-auto w-full max-w-xs rounded-lg border border-black bg-white p-6 shadow-2xl">
+        <div className="mx-auto w-full max-w-sm">
           <div className="flex items-center gap-2 pb-8 xl:pb-10">
             <Button
               size="icon"
@@ -133,23 +133,23 @@ export const CreateTeam = () => {
             <UserSelection selectedUsers={selectedUsers} onUsersChange={setSelectedUsers} />
 
             <SelectPoc
-              currentUser={user}
-              members={selectedUsers}
               value={pocId}
+              currentUser={user}
               onChange={setPocId}
+              members={selectedUsers}
             />
 
-            <div className="flex w-full flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" className="flex-1" onClick={handleSkipInviting}>
+                Skip Inviting
+              </Button>
+
               <Button
-                className="w-full"
+                className="flex-1"
                 onClick={handleCreateTeam}
                 disabled={createTeamMutation.isPending || selectedUsers.length === 0}
               >
                 {createTeamMutation.isPending ? 'Creating...' : 'Create Team'}
-              </Button>
-
-              <Button variant="outline" className="w-full" onClick={handleSkipInviting}>
-                Skip Inviting
               </Button>
             </div>
           </div>

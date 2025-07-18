@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { useDebounce } from '@/hooks/useDebounce'
+import { cn } from '@/lib/utils'
 import { X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -119,16 +120,16 @@ export const UserSelection = ({
       <div className="w-full">
         <Combobox
           options={userOptions}
+          placeholder={placeholder}
           onSelect={handleUserSelect}
           onSearchChange={handleSearchChange}
-          placeholder={placeholder}
           searchPlaceholder={searchPlaceholder}
           emptyText={
             searchTerm.length < 3 ? 'Type at least 3 characters to search' : 'No users found'
           }
           loading={isSearching}
           renderOption={renderUserOption}
-          className="w-full"
+          className={cn('text-muted-foreground w-full font-normal')}
         />
       </div>
 

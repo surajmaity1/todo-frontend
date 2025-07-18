@@ -64,6 +64,8 @@ export type UpdateTaskDto = {
   status?: TASK_STATUS_ENUM
   labels?: string[]
   dueAt?: string
+  assignee_id?: string
+  user_type?: USER_TYPE_ENUM
 }
 
 export type GetWatchListTaskDto = {

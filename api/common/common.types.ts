@@ -1,3 +1,5 @@
+import { USER_TYPE_ENUM } from './common-enum'
+
 type TApiFunction<T> = {
   key: string[] | ((...args: any[]) => Array<string | number | boolean | undefined>)
   fn: (...args: any[]) => Promise<T>
@@ -20,7 +22,7 @@ export type TTaskAssignee = {
   task_id: string
   assignee_id: string
   assignee_name: string
-  user_type: string
+  user_type: USER_TYPE_ENUM
   is_active: boolean
   created_by: string
   updated_by: string | null

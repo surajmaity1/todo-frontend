@@ -31,8 +31,14 @@ const todoFormSchema = z.object({
   priority: z.enum(TASK_PRIORITY_ENUM).optional(),
   status: z.enum(TASK_STATUS_ENUM).optional(),
   labels: z.array(z.string()).optional(),
-  assigneeId: z.string().min(1, 'Assignee is required'),
-  userType: z.enum(USER_TYPE_ENUM, { message: 'Assignee is required' }),
+  assignee: z.object(
+    {
+      label: z.string(),
+      value: z.string(),
+      type: z.enum(USER_TYPE_ENUM, { message: 'Assignee is required' }),
+    },
+    { error: 'Assignee is required' },
+  ),
 })
 
 export type TTodoFormData = z.infer<typeof todoFormSchema>
@@ -85,10 +91,9 @@ type SubmitButtonProps = {
 const SubmitButton = ({ text, isLoading, isDisabled, watch }: SubmitButtonProps) => {
   const title = watch('title')
   const dueDate = watch('dueDate')
-  const userType = watch('userType')
-  const assigneeId = watch('assigneeId')
+  const assignee = watch('assignee')
 
-  const isButtonDisabled = !title || !dueDate || !assigneeId || !userType || isLoading || isDisabled
+  const isButtonDisabled = !title || !dueDate || !assignee || isLoading || isDisabled
 
   return (
     <Button type="submit" disabled={isButtonDisabled}>
@@ -115,7 +120,6 @@ export const CreateEditTodoForm = ({
   const {
     control,
     register,
-    setValue,
     handleSubmit,
     formState: { errors, isDirty },
     watch,
@@ -128,8 +132,7 @@ export const CreateEditTodoForm = ({
       priority: initialData?.priority || TASK_PRIORITY_ENUM.LOW,
       status: initialData?.status || TASK_STATUS_ENUM.TODO,
       labels: initialData?.labels || [],
-      assigneeId: initialData?.assigneeId || undefined,
-      userType: initialData?.userType || undefined,
+      assignee: initialData?.assignee || undefined,
     },
   })
 
@@ -182,22 +185,19 @@ export const CreateEditTodoForm = ({
       {/* Assignee */}
       <Controller
         control={control}
-        name="assigneeId"
+        name="assignee"
         render={({ field }) => (
           <FormInput
             required
             label="Assignee"
             htmlFor="assigneeId"
             direction="column"
-            errorMessage={errors.assigneeId?.message}
+            errorMessage={errors.assignee?.message}
           >
             <UserAndTeamSearch
-              placeholder="Select assignee"
               value={field.value}
-              onChange={(selectedOption) => {
-                field.onChange(selectedOption?.value)
-                setValue('userType', selectedOption?.type as USER_TYPE_ENUM)
-              }}
+              placeholder="Select assignee"
+              onChange={(selectedOption) => field.onChange(selectedOption)}
             />
           </FormInput>
         )}

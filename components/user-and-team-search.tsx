@@ -1,5 +1,4 @@
 import { TeamsApi } from '@/api/teams/teams.api'
-import { TTeam } from '@/api/teams/teams.type'
 import { UsersApi } from '@/api/users/users.api'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -17,20 +16,19 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 
 type TUserOrTeamOption = {
+  label: string
   value: string
-  searchValue: string
   type: 'user' | 'team'
-  label: React.ReactNode
 }
 
 type TeamOptionProps = {
-  team: TTeam
+  name: string
 }
 
-const TeamOption = ({ team }: TeamOptionProps) => {
+const TeamOption = ({ name }: TeamOptionProps) => {
   return (
     <div className="flex w-full items-center justify-between gap-2">
-      <div className="truncate">{team.name}</div>
+      <div className="truncate">{name}</div>
       <div className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-500">
         Team
       </div>
@@ -39,8 +37,8 @@ const TeamOption = ({ team }: TeamOptionProps) => {
 }
 
 type UserAndTeamSearchProps = {
-  value?: string
   placeholder?: string
+  value: TUserOrTeamOption | null
   onChange: (value: TUserOrTeamOption | null) => void
 }
 
@@ -77,7 +75,7 @@ export const UserAndTeamSearch = ({
     })) ?? []
 
   const teamOptions: TUserOrTeamOption[] = filteredTeams.map((team) => ({
-    label: <TeamOption team={team} />,
+    label: team.name,
     value: team.id,
     type: 'team',
     searchValue: team.name,
@@ -87,12 +85,12 @@ export const UserAndTeamSearch = ({
   const allOptions = [...userOptions, ...teamOptions]
 
   // Add selected option if it exists and is not already in the current options
-  const optionsWithSelected =
+  const optionsWithSelectedUser =
     selectedOption && !allOptions.some((opt) => opt.value === selectedOption.value)
       ? [selectedOption, ...allOptions]
       : allOptions
 
-  const options = optionsWithSelected.sort((a, b) => a.searchValue.localeCompare(b.searchValue))
+  const options = optionsWithSelectedUser.sort((a, b) => a.label.localeCompare(b.label))
 
   const handleSelect = (option: TUserOrTeamOption) => {
     setSelectedOption(option)
@@ -109,13 +107,9 @@ export const UserAndTeamSearch = ({
 
   // Sync selectedOption with value prop when it changes externally
   useEffect(() => {
-    if (value && !selectedOption) {
-      const foundOption = options.find((opt) => opt.value === value)
-
-      if (foundOption) {
-        setSelectedOption(foundOption)
-        return
-      }
+    if (value) {
+      setSelectedOption(value)
+      return
     }
 
     if (!value && selectedOption) {
@@ -134,7 +128,11 @@ export const UserAndTeamSearch = ({
         >
           {selectedOption ? (
             <div className="flex flex-1 items-center gap-2 truncate font-normal">
-              {selectedOption.label}
+              {selectedOption.type === 'team' ? (
+                <TeamOption name={selectedOption.label} />
+              ) : (
+                selectedOption.label
+              )}
             </div>
           ) : (
             <div className="text-muted-foreground flex items-center gap-2 font-normal">
@@ -164,12 +162,14 @@ export const UserAndTeamSearch = ({
               )}
               {options.map((option, index) => (
                 <CommandItem
-                  value={option.searchValue}
+                  value={option.label}
                   key={`${option.value}-${index}`}
                   onSelect={() => handleSelect(option)}
                   className="flex items-center gap-2"
                 >
-                  <div className="w-full">{option.label}</div>
+                  <div className="w-full">
+                    {option.type === 'team' ? <TeamOption name={option.label} /> : option.label}
+                  </div>
                   <Check
                     className={cn(
                       'ml-auto h-4 w-4',

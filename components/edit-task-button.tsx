@@ -1,4 +1,3 @@
-import { TaskAssignmentApi } from '@/api/task-assignment/task-assignment.api'
 import { TasksApi } from '@/api/tasks/tasks.api'
 import { TTask } from '@/api/tasks/tasks.types'
 import { TodoUtil } from '@/lib/todo-util'
@@ -20,58 +19,26 @@ export const EditTodoButton = ({ todo }: EditTodoButtonProps) => {
 
   const [showEditTaskForm, setShowEditTaskForm] = useState(false)
 
-  const updateTaskMutation = useMutation({ mutationFn: TasksApi.updateTask.fn })
-  const assignTaskToUserMutation = useMutation({ mutationFn: TasksApi.assignTaskToUser.fn })
-  const assignTaskToUserOrTeamMutation = useMutation({
-    mutationFn: TaskAssignmentApi.assignTaskToUserOrTeam.fn,
-  })
-
-  const isMutationPending =
-    updateTaskMutation.isPending ||
-    assignTaskToUserOrTeamMutation.isPending ||
-    assignTaskToUserMutation.isPending
-
-  const handleSubmission = async (todoDetails: TTodoFormData) => {
-    let updateSucceeded = false
-    const updateDetails = TodoUtil.getUpdateTodoDetails(todoDetails, todo)
-
-    try {
-      if (Object.keys(updateDetails).length > 0) {
-        await updateTaskMutation.mutateAsync({
-          id: todo.id,
-          ...updateDetails,
-        })
-        updateSucceeded = true
-      }
-
-      /**
-       * If the task has not been to any user then we call the post api to assign the task to a user or team.
-       * If the task has been assigned to a user then we call the patch api to update the task assignee to a different user.
-       * */
-      if (!todo.assignee && todoDetails.assigneeId && todoDetails.userType) {
-        await assignTaskToUserOrTeamMutation.mutateAsync({
-          task_id: todo.id,
-          assignee_id: todoDetails.assigneeId,
-          user_type: todoDetails.userType,
-        })
-      } else if (todo.assignee && todoDetails.assigneeId) {
-        await assignTaskToUserMutation.mutateAsync({
-          task_id: todo.id,
-          assignee_id: todoDetails.assigneeId,
-        })
-      }
-
+  const updateTaskMutation = useMutation({
+    mutationFn: TasksApi.updateTask.fn,
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: TasksApi.getTasks.key() })
       toast.success('Todo updated successfully')
       setShowEditTaskForm(false)
-    } catch (error) {
-      console.debug(error)
-      if (updateSucceeded) {
-        toast.error('Failed to assign todo, please try again')
-        return
-      }
-
+    },
+    onError: () => {
       toast.error('Failed to update todo, please try again')
+    },
+  })
+
+  const handleSubmission = async (todoDetails: TTodoFormData) => {
+    const updateDetails = TodoUtil.getUpdateTodoDetails(todoDetails, todo)
+
+    if (Object.keys(updateDetails).length > 0) {
+      updateTaskMutation.mutate({
+        id: todo.id,
+        ...updateDetails,
+      })
     }
   }
 
@@ -81,7 +48,7 @@ export const EditTodoButton = ({ todo }: EditTodoButtonProps) => {
       open={showEditTaskForm}
       onSubmit={handleSubmission}
       onOpenChange={setShowEditTaskForm}
-      isMutationPending={isMutationPending}
+      isMutationPending={updateTaskMutation.isPending}
       defaultData={TodoUtil.getDefaultTodoFormData(todo)}
     >
       <Tooltip>

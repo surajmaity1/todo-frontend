@@ -2,7 +2,6 @@ import { apiClient } from '../../lib/api-client'
 import { TApiMethodsRecord } from '../common/common.types'
 import {
   AddTaskToWatchListDto,
-  AssignTaskToUserReqDto,
   CrateTaskReqDto,
   GetTaskReqDto,
   GetTasksDto,
@@ -56,13 +55,6 @@ export const TasksApi = {
     key: ['tasksApi.toggleTaskWatchListStatus'],
     fn: async ({ taskId, isActive }: ToggleWatchListStatusDto): Promise<void> => {
       await apiClient.patch(`/v1/watchlist/tasks/${taskId}`, { isActive })
-    },
-  },
-
-  assignTaskToUser: {
-    key: ['TasksApi.assignTaskToUser'],
-    fn: async (data: AssignTaskToUserReqDto): Promise<void> => {
-      await apiClient.patch(`/v1/tasks/${data.task_id}/assign`, { assignee_id: data.assignee_id })
     },
   },
 } satisfies TApiMethodsRecord

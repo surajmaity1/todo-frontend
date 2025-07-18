@@ -31,6 +31,11 @@ export class TodoUtil {
       updateDetails.labels = todoFormData.labels
     }
 
+    if (todoFormData.assignee.value !== initialTodo.assignee?.assignee_id) {
+      updateDetails.assignee_id = todoFormData.assignee.value
+      updateDetails.user_type = todoFormData.assignee.type
+    }
+
     return updateDetails
   }
 
@@ -40,8 +45,14 @@ export class TodoUtil {
       priority: todo.priority,
       dueDate: todo.dueAt || '',
       description: todo.description || '',
-      assigneeId: todo.assignee?.id ?? '',
       labels: todo.labels?.map((l) => l.id) ?? [],
+      assignee: todo.assignee
+        ? {
+            label: todo.assignee.assignee_name,
+            value: todo.assignee.assignee_id,
+            type: todo.assignee.user_type,
+          }
+        : undefined,
     }
   }
 }

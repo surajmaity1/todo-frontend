@@ -24,6 +24,7 @@ export const EditTodoButton = ({ todo }: EditTodoButtonProps) => {
     mutationFn: TasksApi.updateTask.fn,
     onSuccess: (res) => {
       void queryClient.invalidateQueries({ queryKey: TasksApi.getTasks.key() })
+      void queryClient.invalidateQueries({ queryKey: TasksApi.getWatchListTasks.key })
 
       if (res.assignee?.user_type === USER_TYPE_ENUM.TEAM) {
         void queryClient.invalidateQueries({

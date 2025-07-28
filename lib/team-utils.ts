@@ -11,7 +11,7 @@ type ActivityUIData = {
 }
 
 export function getActivityUIData(activity: TeamActivity): ActivityUIData | undefined {
-  const date = new DateUtil(activity.timestamp).format(DateFormats.YYYY_MM_DD)
+  const date = new DateUtil(activity.timestamp).format(DateFormats.D_MMM_YYYY_HH_mm)
   switch (activity.action) {
     case TeamActivityActions.TEAM_CREATED:
       return {

@@ -11,8 +11,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { hasValidDeferDates, isDateValidForDefer } from '@/lib/date-util'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { TTodoFormData } from './create-edit-todo-form'
 import { DatePickerSelect } from './date-picker-select'
@@ -26,6 +27,8 @@ type DeferredTaskButtonProps = {
 export const DeferredTaskButton = ({ todo, open, setOpen }: DeferredTaskButtonProps) => {
   const [deferredTill, setDeferredTill] = useState<Date>()
   const queryClient = useQueryClient()
+
+  const canDeferTask = useMemo(() => hasValidDeferDates(todo.dueDate), [todo.dueDate])
 
   const deferTaskMutation = useMutation({
     mutationFn: TasksApi.deferTask.fn,
@@ -60,30 +63,35 @@ export const DeferredTaskButton = ({ todo, open, setOpen }: DeferredTaskButtonPr
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Defer Todo</DialogTitle>
-          <DialogDescription>
-            Defer &quot;{todo.title}&quot; to a later date. The todo will be moved to your deferred
-            todos.
-          </DialogDescription>
+          {canDeferTask ? (
+            <DialogDescription>Defer &quot;{todo.title}&quot; to a later date.</DialogDescription>
+          ) : (
+            <DialogDescription>
+              Cannot defer this task. The due date is today or has already passed.
+            </DialogDescription>
+          )}
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="deferredTill" className="text-right">
-              Defer Until
-            </Label>
-            <div className="col-span-3">
-              <DatePickerSelect
-                value={deferredTill}
-                onChange={setDeferredTill}
-                isDateDisabled={(date) => date <= new Date()}
-              />
+        {canDeferTask && (
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deferredTill" className="text-right">
+                Defer Until
+              </Label>
+              <div className="col-span-3">
+                <DatePickerSelect
+                  value={deferredTill}
+                  onChange={setDeferredTill}
+                  isDateDisabled={(date) => !isDateValidForDefer(date, todo.dueDate)}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
         <DialogFooter>
           <Button
             type="submit"
             onClick={handleDeferTask}
-            disabled={!deferredTill || deferTaskMutation.isPending}
+            disabled={!canDeferTask || !deferredTill || deferTaskMutation.isPending}
           >
             {deferTaskMutation.isPending ? 'Deferring...' : 'Defer Todo'}
           </Button>

@@ -3,6 +3,7 @@ import { TApiMethodsRecord } from '../common/common.types'
 import {
   AddTaskToWatchListDto,
   CrateTaskReqDto,
+  DeferTaskReqDto,
   GetTaskReqDto,
   GetTasksDto,
   GetWatchListTaskDto,
@@ -53,6 +54,13 @@ export const TasksApi = {
     },
   },
 
+  deferTask: {
+    key: ['tasksApi.deferredTask'],
+    fn: async ({ taskId, ...payload }: DeferTaskReqDto): Promise<TTask> => {
+      const { data } = await apiClient.patch<TTask>(`/v1/tasks/${taskId}?action=defer`, payload)
+      return data
+    },
+  },
   toggleTaskWatchListStatus: {
     key: ['tasksApi.toggleTaskWatchListStatus'],
     fn: async ({ taskId, isActive }: ToggleWatchListStatusDto): Promise<void> => {

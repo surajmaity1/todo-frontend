@@ -19,6 +19,7 @@ export type TTask = {
   tags?: string[]
   dueAt?: string
   in_watchlist?: boolean | null
+  deferredDetails?: TDeferredDetails
 }
 
 export type TEditTask = {
@@ -112,4 +113,15 @@ export type AssignTaskToUserReqDto = {
 export type ReassignTaskReqDto = {
   task_id: string
   executor_id: string
+}
+
+export type TDeferredDetails = {
+  deferredTill: string
+  deferredBy: TMinimalUser
+  deferredAt: string
+}
+
+export type DeferTaskReqDto = {
+  taskId: string
+  deferredTill: string
 }

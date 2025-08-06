@@ -22,10 +22,13 @@ const QUERY_PARAMS_KEYS = {
 
 type TodoListTableHeaderProps = {
   showActions?: boolean
-  isDeferred?: boolean
+  showDeferredColumn?: boolean
 }
 
-export const TodoListTableHeader = ({ showActions, isDeferred }: TodoListTableHeaderProps) => {
+export const TodoListTableHeader = ({
+  showActions,
+  showDeferredColumn,
+}: TodoListTableHeaderProps) => {
   return (
     <TableHeader>
       <TableRow>
@@ -34,7 +37,8 @@ export const TodoListTableHeader = ({ showActions, isDeferred }: TodoListTableHe
         <TableHead className="text-black">Label</TableHead>
         <TableHead className="text-black">Priority</TableHead>
         <TableHead className="text-black">Assignee</TableHead>
-        <TableHead className="text-black">{isDeferred ? 'Deferred Until' : 'Due Date'}</TableHead>
+        <TableHead className="text-black">Due Date</TableHead>
+        {showDeferredColumn && <TableHead className="text-black">Deferred Until</TableHead>}
         {showActions && <TableHead className="text-black">Actions</TableHead>}
       </TableRow>
     </TableHeader>
@@ -44,11 +48,10 @@ export const TodoListTableHeader = ({ showActions, isDeferred }: TodoListTableHe
 type TodoListTableRowProps = {
   todo: TTask
   showActions?: boolean
-  isDeferred?: boolean
+  showDeferredColumn?: boolean
 }
 
-const TodoListTableRow = ({ todo, showActions, isDeferred }: TodoListTableRowProps) => {
-  const date = isDeferred ? todo.deferredDetails?.deferredTill : todo.dueAt
+const TodoListTableRow = ({ todo, showActions, showDeferredColumn }: TodoListTableRowProps) => {
   return (
     <TableRow>
       <TableCell className="whitespace-nowrap">{todo.title}</TableCell>
@@ -68,8 +71,16 @@ const TodoListTableRow = ({ todo, showActions, isDeferred }: TodoListTableRowPro
       <TableCell className="whitespace-nowrap">{todo.assignee?.assignee_name ?? '--'}</TableCell>
 
       <TableCell className="whitespace-nowrap">
-        {date ? new DateUtil(date).format(DateFormats.D_MMM_YYYY) : '--'}
+        {todo.dueAt ? new DateUtil(todo.dueAt).format(DateFormats.D_MMM_YYYY) : '--'}
       </TableCell>
+
+      {showDeferredColumn && (
+        <TableCell className="whitespace-nowrap">
+          {todo.deferredDetails?.deferredTill
+            ? new DateUtil(todo.deferredDetails.deferredTill).format(DateFormats.D_MMM_YYYY)
+            : '--'}
+        </TableCell>
+      )}
 
       <TableCell>
         {showActions ? (
@@ -90,7 +101,7 @@ type TodoListTableBodyProps = {
   isLoading?: boolean
   isPlaceholderData?: boolean
   showActions?: boolean
-  isDeferred?: boolean
+  showDeferredColumn?: boolean
 }
 
 const TodoListTableBody = ({
@@ -98,7 +109,7 @@ const TodoListTableBody = ({
   isLoading,
   isPlaceholderData,
   showActions,
-  isDeferred,
+  showDeferredColumn,
 }: TodoListTableBodyProps) => {
   if (isLoading || isPlaceholderData) {
     return (
@@ -129,7 +140,7 @@ const TodoListTableBody = ({
           key={task.id}
           todo={task}
           showActions={showActions && task.assignee?.user_type !== USER_TYPE_ENUM.TEAM}
-          isDeferred={isDeferred}
+          showDeferredColumn={showDeferredColumn}
         />
       ))}
     </TableBody>
@@ -169,7 +180,9 @@ export const TodoListTable = ({
 
   const search = searchParams.get(QUERY_PARAMS_KEYS.search) ?? ''
   const currentTab = searchParams.get('tab')
-  const isDeferred = currentTab === DashboardTasksTableTabs.Deferred
+  const showDeferredColumn =
+    currentTab === DashboardTasksTableTabs.Deferred ||
+    currentTab === DashboardTasksTableTabs.WatchList
 
   const filteredTasks = !search
     ? tasks
@@ -219,13 +232,13 @@ export const TodoListTable = ({
 
       <div className="overflow-hidden rounded-md border">
         <Table>
-          <TodoListTableHeader showActions={showActions} isDeferred={isDeferred} />
+          <TodoListTableHeader showActions={showActions} showDeferredColumn={showDeferredColumn} />
           <TodoListTableBody
             tasks={filteredTasks}
             isLoading={isLoading}
             isPlaceholderData={isPlaceholderData}
             showActions={showActions}
-            isDeferred={isDeferred}
+            showDeferredColumn={showDeferredColumn}
           />
         </Table>
       </div>

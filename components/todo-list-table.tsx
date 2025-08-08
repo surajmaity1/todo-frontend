@@ -180,6 +180,7 @@ export const TodoListTable = ({
 
   const search = searchParams.get(QUERY_PARAMS_KEYS.search) ?? ''
   const currentTab = searchParams.get('tab')
+  const showIncludeDoneTasksToggle = currentTab === DashboardTasksTableTabs.All || !currentTab
   const showDeferredColumn =
     currentTab === DashboardTasksTableTabs.Deferred ||
     currentTab === DashboardTasksTableTabs.WatchList
@@ -216,11 +217,11 @@ export const TodoListTable = ({
           containerClassName="w-full lg:max-w-xs"
           onChange={(e) => handleSearch(e.target.value)}
         />
-        {currentTab == DashboardTasksTableTabs.All && (
+        {showIncludeDoneTasksToggle && (
           <div className="flex px-4">
             <Switch
               id="includeDoneTasks"
-              checked={includeDone}
+              checked={!!includeDone}
               onCheckedChange={(checked) => onIncludeDoneChange?.(!!checked)}
             />
             <Label htmlFor="includeDoneTasks" className="px-2">

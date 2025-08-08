@@ -6,8 +6,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { TTodoFormData } from './create-edit-todo-form'
 
-export const CreateTodoButton = () => {
+type Props = {
+  defaultData?: Partial<TTodoFormData>
+}
+
+export const CreateTodoButton = ({ defaultData }: Props) => {
   const queryClient = useQueryClient()
   const [showCreateTaskForm, setShowCreateTaskForm] = useState(false)
 
@@ -16,9 +21,9 @@ export const CreateTodoButton = () => {
     onSuccess: (res) => {
       void queryClient.invalidateQueries({ queryKey: TasksApi.getTasks.key() })
 
-      if (res.assignee?.user_type === USER_TYPE_ENUM.TEAM) {
+      if (res.data.assignee?.user_type === USER_TYPE_ENUM.TEAM) {
         void queryClient.invalidateQueries({
-          queryKey: TasksApi.getTasks.key({ teamId: res.assignee.assignee_id }),
+          queryKey: TasksApi.getTasks.key({ teamId: res.data.assignee.assignee_id }),
         })
       }
 
@@ -33,6 +38,7 @@ export const CreateTodoButton = () => {
   return (
     <CreateEditTodoDialog
       mode="create"
+      defaultData={defaultData}
       open={showCreateTaskForm}
       onOpenChange={setShowCreateTaskForm}
       isMutationPending={createTaskMutation.isPending}

@@ -21,7 +21,7 @@ const getTabsList = (teamId: string) => {
   ]
 }
 
-export function TeamTabsNavigation() {
+export const TeamTabNavigation = () => {
   const { teamId } = useParams()
   const pathname = usePathname()
 

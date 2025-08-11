@@ -2,6 +2,7 @@
 
 import { USER_TYPE_ENUM } from '@/api/common/common-enum'
 import { TTask } from '@/api/tasks/tasks.types'
+import { useAuth } from '@/hooks/useAuth'
 import { DateFormats, DateUtil } from '@/lib/date-util'
 import { DashboardTasksTableTabs } from '@/modules/dashboard/constants'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -49,9 +50,17 @@ type TodoListTableRowProps = {
   todo: TTask
   showActions?: boolean
   showDeferredColumn?: boolean
+  userId?: string
 }
 
-const TodoListTableRow = ({ todo, showActions, showDeferredColumn }: TodoListTableRowProps) => {
+const TodoListTableRow = ({
+  todo,
+  showActions,
+  showDeferredColumn,
+  userId,
+}: TodoListTableRowProps) => {
+  const isEditTodoVisible = todo.assignee?.assignee_id === userId
+
   return (
     <TableRow>
       <TableCell className="whitespace-nowrap">{todo.title}</TableCell>
@@ -85,7 +94,7 @@ const TodoListTableRow = ({ todo, showActions, showDeferredColumn }: TodoListTab
       <TableCell>
         {showActions ? (
           <div className="flex items-center gap-0.5">
-            <EditTodoButton todo={todo} />
+            {isEditTodoVisible && <EditTodoButton todo={todo} />}
             <WatchListButton taskId={todo.id} isInWatchlist={todo.in_watchlist} />
           </div>
         ) : (
@@ -111,6 +120,8 @@ const TodoListTableBody = ({
   showActions,
   showDeferredColumn,
 }: TodoListTableBodyProps) => {
+  const { user } = useAuth()
+
   if (isLoading || isPlaceholderData) {
     return (
       <TableBody>
@@ -141,6 +152,7 @@ const TodoListTableBody = ({
           todo={task}
           showActions={showActions && task.assignee?.user_type !== USER_TYPE_ENUM.TEAM}
           showDeferredColumn={showDeferredColumn}
+          userId={user.id}
         />
       ))}
     </TableBody>

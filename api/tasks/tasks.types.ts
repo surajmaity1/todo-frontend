@@ -16,6 +16,7 @@ export type TTask = {
   status: TASK_STATUS_ENUM
   priority?: TASK_PRIORITY_ENUM
   assignee?: TTaskAssignee | null
+  createdBy?: TTaskCreatedBy | null
   tags?: string[]
   dueAt?: string
   in_watchlist?: boolean | null
@@ -101,7 +102,7 @@ export type TWatchListTask = {
   labels?: TLabel[]
   dueAt: string
   createdAt: string
-  createdBy: string
+  createdBy?: TTaskCreatedBy | null
   watchlistId: string
 }
 
@@ -124,4 +125,9 @@ export type TDeferredDetails = {
 export type DeferTaskReqDto = {
   taskId: string
   deferredTill: string
+}
+
+export type TTaskCreatedBy = {
+  id: string
+  name: string
 }

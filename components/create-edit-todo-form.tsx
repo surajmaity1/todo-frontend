@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { cn, isPastDate } from '@/lib/utils'
 import { SelectLabels } from '@/modules/dashboard/components/select-labels'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -177,9 +178,8 @@ export const CreateEditTodoForm = ({
         direction="column"
         errorMessage={errors.description?.message}
       >
-        <Input
+        <Textarea
           id="description"
-          type="text"
           placeholder="e.g Nothing is cool in here"
           {...register('description')}
         />

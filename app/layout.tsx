@@ -1,28 +1,34 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import Providers from '@/components/providers'
+import { appConfig, validateAppConfig } from '@/config/app-config'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
 
 const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-});
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: "Todo Project",
-  description: "Created by Real Dev Squad",
-};
+  title: appConfig.appName,
+  description: appConfig.appDescription,
+  icons: {
+    icon: '/favicon.ico',
+  },
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
+  validateAppConfig(appConfig)
+
   return (
     <html lang="en" className={inter.className}>
-      <head>
-        <title>Introducing Todo Project</title>
-      </head>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
-  );
+  )
 }

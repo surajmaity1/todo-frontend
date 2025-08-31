@@ -1,3 +1,3 @@
-export default function Home() {
-  return <div>Hello World!</div>;
-}
+import { LandingPage } from '@/modules/landing-page'
+
+export default LandingPage

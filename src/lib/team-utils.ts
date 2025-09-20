@@ -1,6 +1,15 @@
 import { TeamActivity, TeamActivityActions } from '@/api/teams/teams.type'
 import { TASK_STATUS_TO_TEXT_MAP } from '@/components/todos/todo-status-table'
-import { LucideIcon, Minus, Plus, RefreshCcw, UserPlus, Users, UsersRound } from 'lucide-react'
+import {
+  LucideIcon,
+  Minus,
+  Plus,
+  RefreshCcw,
+  UserMinus,
+  UserPlus,
+  Users,
+  UsersRound,
+} from 'lucide-react'
 import { DateFormats, DateUtil } from './date-util'
 
 type ActivityUIData = {
@@ -64,6 +73,20 @@ export function getActivityUIData(activity: TeamActivity): ActivityUIData | unde
         icon: UserPlus,
         title: 'Member joined team',
         description: `${activity.performed_by_name} joined team ${activity.team_name}`,
+        date,
+      }
+    case TeamActivityActions.MEMBER_REMOVED_FROM_TEAM:
+      return {
+        icon: UserMinus,
+        title: 'Member removed from team',
+        description: `${activity.performed_by_name} removed a member from team ${activity.team_name}`,
+        date,
+      }
+    case TeamActivityActions.MEMBER_LEFT_TEAM:
+      return {
+        icon: UserMinus,
+        title: 'Member left team',
+        description: `${activity.performed_by_name} left the team ${activity.team_name}`,
         date,
       }
     default:

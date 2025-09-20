@@ -3,10 +3,13 @@ import {
   CreateTeamPayload,
   GetTeamByIdReqDto,
   GetTeamsDto,
+  GetUserRolesParams,
+  RemoveFromTeamParams,
   TeamActivityTimeline,
   TeamCreationCodeVerificationResponse,
   TeamDto,
   TTeamDto,
+  UserRolesDetails,
 } from './teams.type'
 
 export const TeamsApi = {
@@ -68,6 +71,26 @@ export const TeamsApi = {
       return data
     },
   },
+  removeFromTeam: {
+    key: ({ teamId, memberId }: RemoveFromTeamParams) => [
+      'TeamsApi.removeFromTeam',
+      teamId,
+      memberId,
+    ],
+    fn: async ({ teamId, memberId }: RemoveFromTeamParams): Promise<void> => {
+      await apiClient.delete(`/v1/teams/${teamId}/members/${memberId}`)
+    },
+  },
+  getUserRoles: {
+    key: ({ teamId, userId }: GetUserRolesParams) => ['TeamsApi.getUserRoles', teamId, userId],
+    fn: async ({ teamId, userId }: GetUserRolesParams): Promise<UserRolesDetails> => {
+      const { data } = await apiClient.get<UserRolesDetails>(
+        `/v1/teams/${teamId}/users/${userId}/roles`,
+      )
+      return data
+    },
+  },
+
   verifyTeamCreationCode: {
     key: ['TeamsApi.verifyTeamCreationCode'],
     fn: async ({ code }: { code: string }): Promise<TeamCreationCodeVerificationResponse> => {

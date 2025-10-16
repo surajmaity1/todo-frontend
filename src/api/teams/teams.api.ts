@@ -9,6 +9,7 @@ import {
   TeamCreationCodeVerificationResponse,
   TeamDto,
   TTeamDto,
+  UpdateTeamParams,
   UserRolesDetails,
 } from './teams.type'
 
@@ -99,6 +100,17 @@ export const TeamsApi = {
         { code },
       )
       return data
+    },
+  },
+
+  updateTeam: {
+    key: ({ teamId }: UpdateTeamParams) => ['TeamsApi.updateTeam', teamId],
+    fn: async ({ teamId, pocId, ...data }: UpdateTeamParams): Promise<TeamDto> => {
+      const { data: updatedData } = await apiClient.patch<TeamDto>(`/v1/teams/${teamId}`, {
+        ...data,
+        ...(pocId && { poc_id: pocId }),
+      })
+      return updatedData
     },
   },
 }

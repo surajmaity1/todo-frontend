@@ -157,3 +157,10 @@ export type GetUserRolesParams = {
   teamId: string
   userId: string
 }
+
+export type UpdateTeamParams = {
+  teamId: string
+  pocId?: string
+  name?: string
+  description?: string
+}

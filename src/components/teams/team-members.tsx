@@ -106,6 +106,29 @@ export const TeamMembers = ({ teamId }: TeamMembersProps) => {
     },
   })
 
+  const updatePocMutation = useMutation({
+    mutationFn: TeamsApi.updateTeam.fn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: TeamsApi.getTeamById.key({ teamId, member: true }),
+      })
+      queryClient.invalidateQueries({
+        queryKey: TasksApi.getTasks.key(),
+      })
+      toast.success('POC updated successfully')
+    },
+    onError: () => {
+      toast.error('Failed to update POC')
+    },
+  })
+
+  const handleAppointAsPoc = (memberId: string) => {
+    updatePocMutation.mutate({
+      teamId,
+      pocId: memberId,
+    })
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between pb-4">
@@ -173,6 +196,14 @@ export const TeamMembers = ({ teamId }: TeamMembersProps) => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuItem>Change Role</DropdownMenuItem>
+                            {member.id !== data?.poc_id && (
+                              <DropdownMenuItem
+                                onSelect={() => handleAppointAsPoc(member.id)}
+                                disabled={updatePocMutation.isPending}
+                              >
+                                Appoint as POC
+                              </DropdownMenuItem>
+                            )}
                             {member.id !== user?.id &&
                             member.id !== data?.created_by &&
                             member.id !== data?.poc_id ? (

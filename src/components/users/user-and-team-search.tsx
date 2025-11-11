@@ -1,7 +1,9 @@
 import { TeamsApi } from '@/api/teams/teams.api'
-import { UsersApi } from '@/api/users/users.api'
+import type { TTeam } from '@/api/teams/teams.type'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
+import { useMatch } from '@tanstack/react-router'
 import { Check, ChevronDown, XIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
@@ -42,55 +44,81 @@ type UserAndTeamSearchProps = {
   onChange: (value: TUserOrTeamOption | null) => void
 }
 
+const mapUserToOption = (user: { id: string; name: string }): TUserOrTeamOption => ({
+  label: user.name,
+  value: user.id,
+  type: 'user',
+})
+
+const mapTeamToOption = (team: { id: string; name: string }): TUserOrTeamOption => ({
+  label: team.name,
+  value: team.id,
+  type: 'team',
+})
+
+const filterOptionsByLabel = (options: TUserOrTeamOption[], term: string) =>
+  options.filter((option) => option.label.toLowerCase().includes(term))
+
+const buildTeamScopeOptions = (teamWithMembers: TTeam | undefined): TUserOrTeamOption[] => {
+  if (!teamWithMembers) return []
+  return [mapTeamToOption(teamWithMembers), ...(teamWithMembers.users?.map(mapUserToOption) ?? [])]
+}
+
+const buildPersonalScopeOptions = (
+  currentUser: { id: string; name: string },
+  userTeams: Array<{ id: string; name: string }> | undefined,
+): TUserOrTeamOption[] => {
+  const options: TUserOrTeamOption[] = []
+
+  options.push(mapUserToOption(currentUser))
+
+  if (userTeams) {
+    options.push(...userTeams.map(mapTeamToOption))
+  }
+  return options
+}
+
 export const UserAndTeamSearch = ({
   value,
   onChange,
-  placeholder = 'Select user...',
+  placeholder = 'Select assignee...',
 }: UserAndTeamSearchProps) => {
+  const { user: currentUser } = useAuth()
+  const teamMatch = useMatch({ from: '/_internal/teams/$teamId', shouldThrow: false })
+  const isTeamScope = !!teamMatch?.params?.teamId
+  const teamId = teamMatch?.params?.teamId
+
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [selectedOption, setSelectedOption] = useState<TUserOrTeamOption | null>(null)
 
-  const { data: usersList, isLoading: isUsersLoading } = useQuery({
-    queryKey: UsersApi.users.key({ search }),
-    queryFn: () => UsersApi.users.fn({ search: search || undefined }),
-    select: (res) => res.data.users,
-  })
-
-  const { data: teamsList, isLoading: isTeamsLoading } = useQuery({
+  const { data: userTeams, isLoading: isUserTeamsLoading } = useQuery({
+    enabled: !isTeamScope,
     queryKey: TeamsApi.getTeams.key,
     queryFn: TeamsApi.getTeams.fn,
+    select: (res) => res.teams,
   })
 
-  const isDataLoading = isUsersLoading || isTeamsLoading
-  const filteredTeams =
-    teamsList?.teams.filter((team) => team.name.toLowerCase().includes(search.toLowerCase())) ?? []
+  const { data: teamWithMembers, isLoading: isTeamLoading } = useQuery({
+    enabled: isTeamScope && !!teamId,
+    queryKey: TeamsApi.getTeamById.key({ teamId: teamId!, member: true }),
+    queryFn: async () => TeamsApi.getTeamById.fn({ teamId: teamId!, member: true }),
+  })
 
-  const userOptions: TUserOrTeamOption[] =
-    usersList?.map((user) => ({
-      label: user.name,
-      value: user.id,
-      type: 'user',
-      searchValue: user.name,
-    })) ?? []
+  const isDataLoading = isTeamScope ? isTeamLoading : isUserTeamsLoading
 
-  const teamOptions: TUserOrTeamOption[] = filteredTeams.map((team) => ({
-    label: team.name,
-    value: team.id,
-    type: 'team',
-    searchValue: team.name,
-  }))
+  const term = search.trim().toLowerCase()
+  const allOptions = isTeamScope
+    ? buildTeamScopeOptions(teamWithMembers)
+    : buildPersonalScopeOptions(currentUser, userTeams)
 
-  // Always include the selected option in the list, even if it's not in current results
-  const allOptions = [...userOptions, ...teamOptions]
+  const options = filterOptionsByLabel(allOptions, term)
 
-  // Add selected option if it exists and is not already in the current options
-  const optionsWithSelectedUser =
-    selectedOption && !allOptions.some((opt) => opt.value === selectedOption.value)
-      ? [selectedOption, ...allOptions]
-      : allOptions
-
-  const options = optionsWithSelectedUser.sort((a, b) => {
+  const result = [...options]
+  if (selectedOption && !result.some((opt) => opt.value === selectedOption.value)) {
+    result.unshift(selectedOption)
+  }
+  const finalOptions = result.toSorted((a, b) => {
     if (a.value === selectedOption?.value) return -1
     if (b.value === selectedOption?.value) return 1
     return a.label.localeCompare(b.label)
@@ -153,7 +181,7 @@ export const UserAndTeamSearch = ({
         style={{ width: 'var(--radix-popover-trigger-width)' }}
       >
         <Command>
-          <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} />
+          <CommandInput placeholder="Search assignee..." value={search} onValueChange={setSearch} />
           <CommandList>
             <CommandEmpty>{isDataLoading ? 'Loading...' : 'No users found.'}</CommandEmpty>
 
@@ -164,7 +192,7 @@ export const UserAndTeamSearch = ({
                   Clear selection
                 </CommandItem>
               )}
-              {options.map((option, index) => (
+              {finalOptions.map((option, index) => (
                 <CommandItem
                   value={option.label}
                   key={`${option.value}-${index}`}

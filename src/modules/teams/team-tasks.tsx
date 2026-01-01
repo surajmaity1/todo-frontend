@@ -8,6 +8,8 @@ import { Searchbar } from '@/components/common/searchbar'
 import { EditTodoButton } from '@/components/todos/edit-task-button'
 import { IncludeDoneSwitch } from '@/components/todos/include-done-switch'
 import { TaskPriorityLabel } from '@/components/todos/task-priority-label'
+import { TodoDialog } from '@/components/todos/todo-dialog'
+import { TTodoFormData } from '@/components/todos/todo-form'
 import { TodoLabelsList } from '@/components/todos/todo-labels-list'
 import { TodoListTableHeader, TodoListTableRowShimmer } from '@/components/todos/todo-list-table'
 import { TodoStatusTable } from '@/components/todos/todo-status-table'
@@ -15,9 +17,12 @@ import { WatchListButton } from '@/components/todos/watchlist-button'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { ReassignUser } from '@/components/users/reassign-user'
 import { useAuth } from '@/hooks/useAuth'
+import { useUpdateTask } from '@/hooks/useUpdateTask'
 import { DateFormats, DateUtil } from '@/lib/date-util'
+import { TodoUtil } from '@/lib/todo-util'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useState } from 'react'
 
 type TodoListTableRowProps = {
   todo: TTask
@@ -29,11 +34,42 @@ const TodoListTableRow = ({ todo, team }: TodoListTableRowProps) => {
   const isRessignTodoCtaVisible =
     todo.assignee?.user_type === USER_TYPE_ENUM.TEAM && team?.poc_id === user.id
   const isEditTodoVisible = todo.assignee?.assignee_id === user.id
+  const [showViewTodoModal, setShowViewTodoModal] = useState(false)
+
+  const { mutation, handleSubmission } = useUpdateTask({
+    todo,
+    teamId: team?.id,
+  })
+
+  const handleSubmit = (todoDetails: TTodoFormData) => {
+    handleSubmission(todoDetails, () => {
+      setShowViewTodoModal(false)
+    })
+  }
 
   return (
     <TableRow>
-      <TableCell className="whitespace-nowrap">{todo.title}</TableCell>
-
+      {isEditTodoVisible ? (
+        <TodoDialog
+          mode={'edit'}
+          defaultData={TodoUtil.getDefaultTodoFormData(todo)}
+          onOpenChange={setShowViewTodoModal}
+          open={showViewTodoModal}
+          onSubmit={handleSubmit}
+          isMutationPending={mutation.isPending}
+        >
+          <TableCell className="whitespace-nowrap">{todo.title}</TableCell>
+        </TodoDialog>
+      ) : (
+        <TodoDialog
+          mode={'view'}
+          defaultData={TodoUtil.getDefaultTodoFormData(todo)}
+          onOpenChange={setShowViewTodoModal}
+          open={showViewTodoModal}
+        >
+          <TableCell className="whitespace-nowrap">{todo.title}</TableCell>
+        </TodoDialog>
+      )}
       <TableCell className="whitespace-nowrap">
         <TodoStatusTable status={todo.status} />
       </TableCell>
@@ -54,7 +90,7 @@ const TodoListTableRow = ({ todo, team }: TodoListTableRowProps) => {
         {todo.dueAt ? new DateUtil(todo.dueAt).format(DateFormats.D_MMM_YYYY) : '--'}
       </TableCell>
 
-      <TableCell className="flex items-center gap-0.5">
+      <TableCell className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
         {isRessignTodoCtaVisible && <ReassignUser taskId={todo.id} teamId={team.id} />}
         {isEditTodoVisible && <EditTodoButton todo={todo} teamId={team?.id} />}
         {!isRessignTodoCtaVisible && (

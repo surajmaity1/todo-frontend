@@ -103,21 +103,35 @@ const SubmitButton = ({ text, isLoading, isDisabled, watch }: SubmitButtonProps)
   )
 }
 
-type CreateEditTodoFormProps = {
-  isSubmitting?: boolean
-  mode?: 'create' | 'edit'
+type BaseFormProps = {
   initialData?: Partial<TTodoFormData>
   onCancel: () => void
-  onSubmit: (data: TTodoFormData) => void
+  mode?: 'create' | 'edit' | 'view'
+  disabled: boolean
 }
 
-export const CreateEditTodoForm = ({
+type CreateEditTodoFormProps = BaseFormProps & {
+  disabled: false
+  onSubmit: (data: TTodoFormData) => void
+  isSubmitting?: boolean
+}
+
+type ViewTodoFormProps = BaseFormProps & {
+  disabled: true
+  onSubmit?: undefined
+  isSubmitting?: undefined
+}
+
+type TodoFormProps = CreateEditTodoFormProps | ViewTodoFormProps
+
+export const TodoForm = ({
   onCancel,
-  onSubmit,
   initialData,
-  isSubmitting,
   mode = 'create',
-}: CreateEditTodoFormProps) => {
+  disabled,
+  onSubmit,
+  isSubmitting,
+}: TodoFormProps) => {
   const {
     control,
     register,
@@ -142,6 +156,7 @@ export const CreateEditTodoForm = ({
   const [deferModalOpen, setDeferModalOpen] = useState(false)
 
   const handleFormSubmit = (data: TTodoFormData) => {
+    if (disabled) return
     onSubmit(data)
   }
 
@@ -166,6 +181,7 @@ export const CreateEditTodoForm = ({
           type="text"
           placeholder="e.g Cool new title for my todo"
           {...register('title')}
+          disabled={disabled}
         />
       </FormInput>
 
@@ -181,6 +197,7 @@ export const CreateEditTodoForm = ({
           placeholder="e.g Nothing is cool in here"
           className="break-word max-h-32"
           {...register('description')}
+          disabled={disabled}
         />
       </FormInput>
 
@@ -200,6 +217,7 @@ export const CreateEditTodoForm = ({
               value={field.value}
               placeholder="Select assignee"
               onChange={(selectedOption) => field.onChange(selectedOption)}
+              disabled={disabled}
             />
           </FormInput>
         )}
@@ -227,6 +245,7 @@ export const CreateEditTodoForm = ({
                     isDateDisabled={(date) => isPastDate(date)}
                     value={field.value ? new Date(field.value) : undefined}
                     onChange={(date) => field.onChange(date?.toISOString())}
+                    disabled={disabled}
                   />
                 </div>
               </FormInput>
@@ -247,6 +266,7 @@ export const CreateEditTodoForm = ({
                 <Select
                   value={field.value}
                   onValueChange={(value) => field.onChange(value as TASK_PRIORITY_ENUM)}
+                  disabled={disabled}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select priority" />
@@ -282,6 +302,7 @@ export const CreateEditTodoForm = ({
                       field.onChange(value as TASK_STATUS_ENUM)
                     }
                   }}
+                  disabled={disabled}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select task status" />
@@ -302,6 +323,7 @@ export const CreateEditTodoForm = ({
                     todo={initialData}
                     open={deferModalOpen}
                     setOpen={setDeferModalOpen}
+                    disabled={disabled}
                   />
                 )}
               </FormInput>
@@ -323,6 +345,7 @@ export const CreateEditTodoForm = ({
                   labelData={labels}
                   value={field.value ?? []}
                   onChange={field.onChange}
+                  disabled={disabled}
                 />
               </FormInput>
             )}
@@ -337,13 +360,14 @@ export const CreateEditTodoForm = ({
             Cancel
           </Button>
         )}
-
-        <SubmitButton
-          watch={watch}
-          isLoading={isSubmitting}
-          isDisabled={mode === 'edit' ? !isDirty : false}
-          text={isSubmitting ? buttonLoadingText : buttonText}
-        />
+        {!disabled && (
+          <SubmitButton
+            watch={watch}
+            isLoading={isSubmitting}
+            isDisabled={mode === 'edit' ? !isDirty : false}
+            text={isSubmitting ? buttonLoadingText : buttonText}
+          />
+        )}
       </div>
     </form>
   )

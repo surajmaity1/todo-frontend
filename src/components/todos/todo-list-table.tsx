@@ -1,5 +1,6 @@
 import { TTask } from '@/api/tasks/tasks.types'
 import { useAuth } from '@/hooks/useAuth'
+import { useUpdateTask } from '@/hooks/useUpdateTask'
 import { DateFormats, DateUtil } from '@/lib/date-util'
 import {
   DashboardTasksTableTabs,
@@ -8,11 +9,15 @@ import {
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Searchbar } from '../common/searchbar'
 
+import { TodoUtil } from '@/lib/todo-util'
+import { useState } from 'react'
 import { Shimmer } from '../common/shimmer'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { EditTodoButton } from './edit-task-button'
 import { IncludeDoneSwitch } from './include-done-switch'
 import { TaskPriorityLabel } from './task-priority-label'
+import { TodoDialog } from './todo-dialog'
+import { TTodoFormData } from './todo-form'
 import { TodoLabelsList } from './todo-labels-list'
 import { TodoStatusTable } from './todo-status-table'
 import { WatchListButton } from './watchlist-button'
@@ -57,10 +62,45 @@ const TodoListTableRow = ({
   userId,
 }: TodoListTableRowProps) => {
   const isEditTodoVisible = todo.assignee?.assignee_id === userId
+  const [showViewTodoModal, setShowViewTodoModal] = useState(false)
+
+  const { mutation, handleSubmission } = useUpdateTask({
+    todo,
+  })
+
+  const handleSubmit = (todoDetails: TTodoFormData) => {
+    handleSubmission(todoDetails, () => {
+      setShowViewTodoModal(false)
+    })
+  }
+
   return (
     <TableRow>
-      <TableCell className="whitespace-nowrap">{todo.title}</TableCell>
-
+      {isEditTodoVisible ? (
+        <TodoDialog
+          mode={'edit'}
+          defaultData={TodoUtil.getDefaultTodoFormData(todo)}
+          onOpenChange={setShowViewTodoModal}
+          open={showViewTodoModal}
+          onSubmit={handleSubmit}
+          isMutationPending={mutation.isPending}
+        >
+          <TableCell className="whitespace-nowrap hover:cursor-pointer hover:underline">
+            {todo.title}
+          </TableCell>
+        </TodoDialog>
+      ) : (
+        <TodoDialog
+          mode={'view'}
+          defaultData={TodoUtil.getDefaultTodoFormData(todo)}
+          onOpenChange={setShowViewTodoModal}
+          open={showViewTodoModal}
+        >
+          <TableCell className="whitespace-nowrap hover:cursor-pointer hover:underline">
+            {todo.title}
+          </TableCell>
+        </TodoDialog>
+      )}
       <TableCell className="whitespace-nowrap">
         <TodoStatusTable status={todo.status} />
       </TableCell>
@@ -91,7 +131,7 @@ const TodoListTableRow = ({
 
       <TableCell>
         {showActions ? (
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
             {isEditTodoVisible && <EditTodoButton todo={todo} />}
             <WatchListButton taskId={todo.id} isInWatchlist={todo.in_watchlist} />
           </div>
